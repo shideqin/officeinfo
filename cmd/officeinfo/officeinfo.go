@@ -16,7 +16,7 @@ var HELP = `
     officeinfo
 
     image http[s]://domain/file[.jpg|.jpeg|.png|.gif]
-    pdf  http[s]://domain/file.pdf [pageNum]
+    pdf  http[s]://domain/file.pdf [page_num]
 `
 
 func main() {
