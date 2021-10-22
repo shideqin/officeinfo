@@ -5,8 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"image"
+	"io"
+	"net/http"
 	"officeinfo/base"
 	"strings"
+
+	"golang.org/x/image/webp"
 )
 
 type ImgInfo struct {
@@ -28,7 +32,16 @@ func (i *Info) GetImageInfo(args []string) ([]byte, error) {
 	if err != nil {
 		return info, err
 	}
-	img, _, err := image.Decode(buffer)
+	contentType, err := i.fileContentType(bytes.NewReader(buffer.Bytes()))
+	if err != nil {
+		return info, err
+	}
+	var img image.Image
+	if contentType == "image/webp" {
+		img, err = webp.Decode(buffer)
+	} else {
+		img, _, err = image.Decode(buffer)
+	}
 	if err != nil {
 		return info, err
 	}
@@ -37,4 +50,16 @@ func (i *Info) GetImageInfo(args []string) ([]byte, error) {
 	imgInfo.Width = b.Max.X
 	imgInfo.Height = b.Max.Y
 	return json.Marshal(imgInfo)
+}
+
+func (i *Info) fileContentType(r io.ReadSeeker) (string, error) {
+	// 读取前 512 个字节
+	buf := make([]byte, 512)
+	_, err := r.Read(buf)
+	_, _ = r.Seek(0, 0)
+	if err != nil {
+		return "", err
+	}
+	contentType := http.DetectContentType(buf)
+	return contentType, nil
 }
