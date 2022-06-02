@@ -67,15 +67,13 @@ func CURL2Reader(addr, method string, headers map[string]string, body io.Reader,
 		}
 	}
 	resp, err := httpClient.Do(req.WithContext(ctx))
-	if resp != nil {
-		defer func() {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
-			resp.Body.Close()
-		}()
-	}
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		resp.Body.Close()
+	}()
 	_, err = io.Copy(buffer, resp.Body)
 	if err != nil {
 		return nil, err
